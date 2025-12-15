@@ -7,7 +7,7 @@ import chardet
 
 skip_types = []
 
-skip_properties = ["publisher", "mainEntityOfPage"]
+skip_properties = []
 
 #ugly hack
 leaf_types = ["Recipe", "Product"]
