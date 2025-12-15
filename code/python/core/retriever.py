@@ -797,7 +797,9 @@ class VectorDBClient:
         # Handle configured sites
         if site == "all":
             sites = CONFIG.nlweb.sites
-            if sites and sites != "all":
+            # Check if sites is configured as something other than "all"
+            # sites can be a string "all" or a list ["all"] or a list of specific sites
+            if sites and sites != "all" and sites != ["all"]:
                 # Use configured sites instead of "all"
                 site = sites
 

@@ -345,7 +345,28 @@
   <!-- Site configuration for querying all sites -->
   <Site id="all">
     <Item>
-      <Tool name="who_and_search" enabled="true">
+      <!-- Simple search tool for site=all that searches across all data -->
+      <Tool name="search" enabled="true">
+        <method>builtin</method>
+        <example>Find information about health topics</example>
+        <example>Search for medical conditions</example>
+        <prompt>
+          The user has the following query: {request.query}.
+
+          The search tool finds items that match the query across all sites in the database.
+
+          Assign a score from 0 to 100 for whether the search tool is appropriate.
+          Also provide the search query that should be passed to the tool.
+        </prompt>
+        <returnStruc>
+          {
+            "score": "integer between 0 and 100",
+            "search_query": "the search query that should be passed to the tool"
+          }
+        </returnStruc>
+      </Tool>
+
+      <Tool name="who_and_search" enabled="false">
         <method>extension</method>
         <handler>methods.multi_site_query.MultiSiteQueryHandler</handler>
         <example>Find the best deals on laptops across all shopping sites</example>
@@ -354,13 +375,13 @@
         <example>Compare hotel prices in Paris across all booking sites</example>
         <prompt>
           The user has the following query: {request.query}.
-          
+
           When the site is 'all', we search across multiple websites to find the best aggregated results.
           This is ideal for queries that benefit from comparing information from multiple sources.
-          
+
           Since this is the 'all' site context, the search tool should almost always be selected
           unless the query is asking for something very specific that doesn't make sense for multi-site search.
-          
+
           Assign a score from 0 to 100 for whether searching across all sites is appropriate.
         </prompt>
         <returnStruc>
@@ -371,7 +392,7 @@
         </returnStruc>
       </Tool>
   </Item>
-     
+
   </Site>
 
   <!-- Special site for searching conversation history -->

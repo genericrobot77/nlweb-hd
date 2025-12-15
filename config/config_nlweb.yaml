@@ -2,9 +2,34 @@
 # This file contains settings specific to the NLWeb functionality
 
 # Comma-separated list of allowed sites, if you have multiple sites
-# in your store and want to restrict search to some sites. Defaults 
+# in your store and want to restrict search to some sites. Defaults
 # to all, for now.
-#sites: "yoursite"
+sites: "all"
+
+# Search performance settings
+# Reduce these values for faster results (fewer items to process)
+search:
+  # Number of results to retrieve from vector database per query
+  num_results_from_db: 20
+  # Number of results to send to the user after ranking
+  num_results_to_send: 10
+  # Score threshold for early sending (results above this sent immediately)
+  # Lower values send more results faster, higher values only send very high-quality results early
+  early_send_threshold: 55
+  # Number of items to rank initially (top N from vector search)
+  # Ranking fewer items initially speeds up time to first result
+  initial_ranking_batch_size: 15
+
+# Multi-site search settings (when site=all)
+multi_site:
+  # Maximum number of sites to query
+  top_k_sites: 5
+  # Results to retrieve per site
+  results_per_site: 5
+  # Maximum total results across all sites
+  final_top_k: 20
+  # Score threshold for immediate display (vs held for later)
+  score_threshold: 79
 
 # Data folders for JSON files and embeddings
 data_folders:
@@ -33,7 +58,7 @@ required_info_enabled: true
 
 # Enable or disable aggregation functionality
 # When set to false, the system will not perform aggregation operations
-aggregation_enabled: true
+aggregation_enabled: false
 
 # Enable or disable the who endpoint
 # When set to false, the system will not make requests to the who endpoint

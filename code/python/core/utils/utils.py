@@ -3,10 +3,9 @@ from core.config import CONFIG
 import json
 from urllib.parse import quote
 
-recipe_sites = ['seriouseats', 'hebbarskitchen', 'latam_recipes',
-                'woksoflife', 'cheftariq',  'spruce', 'nytimes']
 
-all_sites = recipe_sites + ["imdb", "npr podcasts", "neurips", "backcountry", "tripadvisor", "DataCommons"]
+
+all_sites = ["Healthdirect", "PBB", "Partners"]
 
 def build_nlweb_gateway_url(site_url, query, site_type=None):
     """

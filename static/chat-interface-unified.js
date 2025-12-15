@@ -1290,6 +1290,18 @@ export class UnifiedChatInterface {
   
   endStreaming() {
     if (this.state.currentStreaming) {
+      // Clean up any spinners that might still be attached
+      if (this.state.currentStreaming.spinner) {
+        this.state.currentStreaming.spinner.remove();
+      }
+      if (this.state.currentStreaming.secondarySpinner) {
+        this.state.currentStreaming.secondarySpinner.remove();
+        delete this.state.currentStreaming.secondarySpinner;
+      }
+      if (this.state.currentStreaming.bubble) {
+        this.state.currentStreaming.bubble.classList.remove('with-spinner');
+      }
+
       // Check if no content was received and display a message
       const { context, textDiv, hasReceivedContent } = this.state.currentStreaming;
 

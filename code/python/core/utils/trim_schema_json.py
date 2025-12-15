@@ -5,10 +5,7 @@ import chardet
 # for indexing or ranking. Further, many pages are just collections that we don't 
 # want to index at all. We can also skip things like Breadcrumbs
 
-skip_types = ["ListItem", "ItemList", "Organization", "BreadcrumbList", "Breadcrumb", "WebSite", 
-              "SearchAction", "SiteNavigationElement", "WebPageElement", "WebPage", "NewsMediaOrganization",
-              "MerchantReturnPolicy", "ReturnPolicy", "CollectionPage", "Brand", "Corporation", 
-              "SiteNavigationElement", "ReadAction"]
+skip_types = []
 
 skip_properties = ["publisher", "mainEntityOfPage"]
 
