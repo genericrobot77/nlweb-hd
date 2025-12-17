@@ -198,8 +198,13 @@ async def sites_handler(request: web.Request) -> web.Response:
         # Create a retriever client
         retriever = get_vector_db_client(query_params=query_params)
 
-        # Get the list of sites
+        # Get the list of sites from database
         sites = await retriever.get_sites()
+
+        # Filter to only include sites configured in sites.xml
+        if hasattr(CONFIG, 'nlweb') and hasattr(CONFIG.nlweb, 'site_configs') and CONFIG.nlweb.site_configs:
+            configured_sites = set(CONFIG.nlweb.site_configs.keys())
+            sites = [s for s in sites if s in configured_sites]
 
         # Prepare the response
         response_data = {

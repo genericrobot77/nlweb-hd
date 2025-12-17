@@ -547,16 +547,16 @@ class QdrantVectorClient(RetrievalClientBase):
                 logger.info(f"Collection '{collection_name}' was just created. Returning empty results.")
                 results = []
             else:
-                # Perform the search
-                search_result = (
-                    await client.search(
-                        collection_name=collection_name,
-                        query_vector=embedding,
-                        limit=num_results,
-                        query_filter=filter_condition,
-                        with_payload=True,
-                    )
+                # Perform the search using query_points (modern API)
+                search_result = await client.query_points(
+                    collection_name=collection_name,
+                    query=embedding,
+                    limit=num_results,
+                    query_filter=filter_condition,
+                    with_payload=True,
                 )
+                # query_points returns QueryResponse with .points attribute
+                search_result = search_result.points
                 
                 # Format the results
                 results = self._format_results(search_result)

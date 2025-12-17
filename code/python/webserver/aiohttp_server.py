@@ -40,10 +40,36 @@ class AioHTTPServer:
         self.site: Optional[web.TCPSite] = None
         self.record_file: Optional[str] = None
         
+    def _resolve_config_file(self, config_path: str) -> Path:
+        """Resolve the config path across local and container layouts"""
+        config_path_obj = Path(config_path)
+
+        if config_path_obj.is_absolute():
+            return config_path_obj
+
+        env_config_dir = os.environ.get('NLWEB_CONFIG_DIR')
+        candidates = []
+
+        if env_config_dir:
+            env_dir = Path(env_config_dir)
+            candidates.append(env_dir / config_path_obj.name)
+            candidates.append(env_dir / config_path_obj)
+
+        base_dir = Path(__file__).resolve().parent
+        for parent in [base_dir] + list(base_dir.parents):
+            candidates.append(parent / config_path_obj)
+
+        candidates.append(Path.cwd() / config_path_obj)
+
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+
+        return candidates[0]
+
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """Load configuration from YAML file"""
-        base_path = Path(__file__).parent.parent.parent.parent
-        config_file = base_path / config_path
+        config_file = self._resolve_config_file(config_path)
         
         if not config_file.exists():
             logger.warning(f"Config file not found at {config_file}, using defaults")

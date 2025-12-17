@@ -83,6 +83,23 @@ class MultiSiteQueryHandler:
                 await self._send_sites_list(sites_to_query)
             else:
                 print(f"[MULTI-SITE] WARNING: No sites returned from who endpoint!")
+                # Fallback: use all configured sites from sites.xml
+                print(f"[MULTI-SITE] Falling back to configured sites from sites.xml")
+                configured_sites = []
+                if hasattr(CONFIG, 'nlweb') and hasattr(CONFIG.nlweb, 'site_configs') and CONFIG.nlweb.site_configs:
+                    configured_sites = list(CONFIG.nlweb.site_configs.keys())
+
+                for site_name in configured_sites[:self.top_k_sites]:
+                    site = {'domain': site_name, 'name': site_name}
+                    site_count += 1
+                    sites_to_query.append(site)
+                    await self._send_site_status(site, site_count)
+                    task = asyncio.create_task(self._query_site_and_stream(site_name, site, ask_base_url))
+                    self.active_tasks.append(task)
+
+                if sites_to_query:
+                    print(f"[MULTI-SITE] Using fallback sites: {[s['domain'] for s in sites_to_query]}")
+                    await self._send_sites_list(sites_to_query)
             
             # Wait for all site queries to complete
             if self.active_tasks:

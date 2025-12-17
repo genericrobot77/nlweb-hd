@@ -1,0 +1,7 @@
+{
+  "name": "NLWeb",
+  "build": {
+    "context": "..",
+    "dockerfile": "../Dockerfile"
+  }
+}

@@ -1,40 +1,29 @@
 # Stage 1: Build stage
 FROM python:3.13-slim AS builder
 
-# Install build dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        gcc \
-        g++ \
-        python3-dev \
-        build-essential \
-        cmake \
-        make \
-        git && \
-    pip install --no-cache-dir --upgrade pip && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        gcc g++ python3-dev build-essential cmake make \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy requirements file
-COPY code/python/requirements.txt .
+COPY code/python/requirements.txt /app/requirements.txt
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python packages into builder
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /app/requirements.txt
 
-# Stage 2: Runtime stage
+
+# Stage 2: Runtime stage (this is what runs)
 FROM python:3.13-slim
 
-# Install runtime dependencies and apply security updates
+# Install runtime deps (+ git so VS Code is happy)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libgomp1 \
-        libgcc-s1 && \
-    apt-get install -y --no-install-recommends --only-upgrade \
-        $(apt-get --just-print upgrade | grep "^Inst" | grep -i securi | awk '{print $2}') && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        libgomp1 libgcc-s1 git \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -53,21 +42,17 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Create data directories and set permissions as root
 RUN mkdir -p /app/data /app/data/json_with_embeddings /app/logs && \
-    # Copy static files to expected location for static route resolution
     cp -r /app/static /static && \
     chown -R nlweb:nlweb /app && \
     chmod -R 755 /app/data /app/logs
 
 USER nlweb
 
-# Expose the port the app runs on
 EXPOSE 8000
 
-# Set environment variables
 ENV NLWEB_OUTPUT_DIR=/app
 ENV PYTHONPATH=/app
 ENV PORT=8000
 ENV NLWEB_CONFIG_DIR=/app/config
 
-# Command to run the application
 CMD ["python", "python/app-file.py"]

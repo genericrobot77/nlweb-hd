@@ -14,8 +14,9 @@ from dotenv import load_dotenv
 
 
 async def main():
-    # Load environment variables from .env file
-    load_dotenv()
+    # Load environment variables from .env file in project root
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    load_dotenv(os.path.join(project_root, '.env'))
     
     # Suppress verbose HTTP client logging from OpenAI SDK
     import logging

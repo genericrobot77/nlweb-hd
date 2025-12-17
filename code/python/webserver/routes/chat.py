@@ -1217,7 +1217,12 @@ async def websocket_handler(request: web.Request) -> web.WebSocketResponse:
                             
                             # Get the list of sites
                             sites = await retriever.get_sites()
-                            
+
+                            # Filter to only include sites configured in sites.xml
+                            if hasattr(CONFIG, 'nlweb') and hasattr(CONFIG.nlweb, 'site_configs') and CONFIG.nlweb.site_configs:
+                                configured_sites = set(CONFIG.nlweb.site_configs.keys())
+                                sites = [s for s in sites if s in configured_sites]
+
                             # Send sites response
                             await ws.send_json({
                                 'type': 'sites_response',
