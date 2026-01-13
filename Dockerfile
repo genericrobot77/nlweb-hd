@@ -56,3 +56,15 @@ ENV PORT=8000
 ENV NLWEB_CONFIG_DIR=/app/config
 
 CMD ["python", "python/app-file.py"]
+
+# If starting from scratch, use a Node.js base image
+FROM node:18
+
+# Or if you already have a different base image (e.g., Ubuntu, Alpine)
+FROM ubuntu:22.04
+
+# Install Node.js and npm
+RUN apt-get update && apt-get install -y \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*

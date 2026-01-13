@@ -52,39 +52,16 @@ class MultiSiteQueryHandler:
         try:
             await self._send_status_message("Identifying relevant sites ...")
             
+            who_endpoint_enabled = CONFIG.is_who_endpoint_enabled()
             who_endpoint = getattr(CONFIG.nlweb, 'who_endpoint', 'http://localhost:8000/who') if hasattr(CONFIG, 'nlweb') else 'http://localhost:8000/who'
             # Ask queries should go to localhost where this server is running
             ask_base_url = 'http://localhost:8000'
-            print(f"[Using who_endpoint: {who_endpoint}")
             
             sites_to_query = []
             site_count = 0
-            print(f"Calling sites_from_who_streaming with endpoint={who_endpoint}, query={self.query}")
             
-            # Start querying sites immediately as they arrive from the streaming endpoint
-            async for site in sites_from_who_streaming(who_endpoint, self.query):
-                # Check if we've reached the limit
-                if site_count >= self.top_k_sites:
-                    break
-                    
-                domain = site.get('domain', '')
-                if domain:
-                    site_count += 1
-                    sites_to_query.append(site)
-                    
-                    # Send status about this site immediately
-                    await self._send_site_status(site, site_count)
-                    
-                    task = asyncio.create_task(self._query_site_and_stream(domain, site, ask_base_url))
-                    self.active_tasks.append(task)
-
-            # Send the complete list of sites that are being searched
-            if sites_to_query:
-                await self._send_sites_list(sites_to_query)
-            else:
-                print(f"[MULTI-SITE] WARNING: No sites returned from who endpoint!")
-                # Fallback: use all configured sites from sites.xml
-                print(f"[MULTI-SITE] Falling back to configured sites from sites.xml")
+            async def _use_configured_sites():
+                nonlocal site_count
                 configured_sites = []
                 if hasattr(CONFIG, 'nlweb') and hasattr(CONFIG.nlweb, 'site_configs') and CONFIG.nlweb.site_configs:
                     configured_sites = list(CONFIG.nlweb.site_configs.keys())
@@ -100,6 +77,39 @@ class MultiSiteQueryHandler:
                 if sites_to_query:
                     print(f"[MULTI-SITE] Using fallback sites: {[s['domain'] for s in sites_to_query]}")
                     await self._send_sites_list(sites_to_query)
+
+            if not who_endpoint_enabled:
+                print("[MULTI-SITE] who_endpoint is disabled; using configured sites from sites.xml")
+                await _use_configured_sites()
+            else:
+                print(f"[Using who_endpoint: {who_endpoint}")
+                print(f"Calling sites_from_who_streaming with endpoint={who_endpoint}, query={self.query}")
+            
+                # Start querying sites immediately as they arrive from the streaming endpoint
+                async for site in sites_from_who_streaming(who_endpoint, self.query):
+                    # Check if we've reached the limit
+                    if site_count >= self.top_k_sites:
+                        break
+                        
+                    domain = site.get('domain', '')
+                    if domain:
+                        site_count += 1
+                        sites_to_query.append(site)
+                        
+                        # Send status about this site immediately
+                        await self._send_site_status(site, site_count)
+                        
+                        task = asyncio.create_task(self._query_site_and_stream(domain, site, ask_base_url))
+                        self.active_tasks.append(task)
+
+                # Send the complete list of sites that are being searched
+                if sites_to_query:
+                    await self._send_sites_list(sites_to_query)
+                else:
+                    print(f"[MULTI-SITE] WARNING: No sites returned from who endpoint!")
+                    # Fallback: use all configured sites from sites.xml
+                    print(f"[MULTI-SITE] Falling back to configured sites from sites.xml")
+                    await _use_configured_sites()
             
             # Wait for all site queries to complete
             if self.active_tasks:
